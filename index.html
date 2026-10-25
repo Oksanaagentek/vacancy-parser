@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вакансии — конструктор выборки</title>
+  <style>
+    :root {
+      --ink: #1b2430;
+      --muted: #667085;
+      --paper: #fffdf8;
+      --canvas: #e9efe9;
+      --line: #d8dfd8;
+      --leaf: #126a4f;
+      --leaf-dark: #0b4e3a;
+      --lime: #d8ef79;
+      --sand: #f5efe3;
+      --danger: #a13a31;
+      --radius: 18px;
+      --shadow: 0 18px 40px rgba(26, 47, 39, .12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background: radial-gradient(circle at 92% 4%, #d6e8b4 0, transparent 23rem), linear-gradient(145deg, #eff4ee, var(--canvas));
+      font: 16px/1.45 Georgia, "Times New Roman", serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(100%, 760px); margin: 0 auto; padding: 22px 16px 42px; }
+    header { padding: 16px 4px 24px; }
+    .eyebrow { margin: 0 0 7px; color: var(--leaf); font: 700 12px/1.1 "Trebuchet MS", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 550px; margin: 0; font-size: clamp(32px, 8vw, 52px); line-height: .98; letter-spacing: -.045em; }
+    .intro { max-width: 560px; margin: 15px 0 0; color: #46534d; font-size: 18px; }
+    .notice { display: flex; gap: 10px; margin: 0 0 18px; padding: 13px 14px; border: 1px solid #bed4aa; border-radius: 12px; background: #f4fae8; color: #365330; font-size: 14px; }
+    .notice strong { color: var(--leaf-dark); }
+    form { padding: 20px; border: 1px solid rgba(18, 106, 79, .14); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); }
+    .section { padding: 22px 0; border-top: 1px solid var(--line); }
+    .section:first-child { padding-top: 0; border-top: 0; }
+    h2 { margin: 0 0 5px; font: 700 21px/1.1 "Trebuchet MS", sans-serif; letter-spacing: -.03em; }
+    .hint { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+    .source-grid { display: grid; gap: 9px; }
+    .source-option { position: relative; display: flex; align-items: center; min-height: 57px; padding: 12px 44px 12px 14px; border: 1px solid var(--line); border-radius: 13px; background: #fff; font-family: "Trebuchet MS", sans-serif; }
+    .source-option:has(input:checked) { border-color: var(--leaf); box-shadow: inset 0 0 0 1px var(--leaf); background: #f6fbf7; }
+    .source-option input { position: absolute; opacity: 0; }
+    .radio-mark { position: absolute; right: 15px; width: 20px; height: 20px; border: 2px solid #83958b; border-radius: 50%; }
+    .source-option input:checked + .radio-mark { border: 6px solid var(--leaf); }
+    .source-name { display: block; font-weight: 700; }
+    .source-note { display: block; margin-top: 1px; color: var(--muted); font: 13px/1.3 Georgia, serif; }
+    .fields { display: grid; gap: 14px; }
+    label { display: grid; gap: 6px; font-family: "Trebuchet MS", sans-serif; font-size: 14px; font-weight: 700; }
+    input, select { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #aebbb2; border-radius: 10px; background: #fff; color: var(--ink); }
+    input::placeholder { color: #879187; }
+    input:focus-visible, select:focus-visible, button:focus-visible, .source-option:has(input:focus-visible) { outline: 3px solid #2b83c8; outline-offset: 2px; }
+    .toggle-list { display: grid; gap: 9px; }
+    .toggle { display: flex; align-items: center; min-height: 45px; padding: 8px 0; border-bottom: 1px dashed #d8dfd8; font-family: "Trebuchet MS", sans-serif; font-size: 15px; }
+    .toggle:last-child { border-bottom: 0; }
+    .toggle > input[type="checkbox"] { width: 20px; height: 20px; min-height: 0; margin: 0 11px 0 1px; accent-color: var(--leaf); }
+    .filter-body { display: none; margin: 10px 0 4px 32px; }
+    .toggle > input[type="checkbox"]:checked ~ .filter-body { display: block; }
+    .toggle-list { padding-bottom: 70px; }
+    .skill-row { display: grid; grid-template-columns: 1fr 46px; gap: 8px; margin-top: 8px; }
+    .remove { min-height: 46px; border: 1px solid #c5cfca; border-radius: 10px; background: #fff; color: var(--danger); font: 700 23px/1 "Trebuchet MS", sans-serif; }
+    .add-skill { min-height: 44px; margin-top: 10px; padding: 0 13px; border: 1px solid var(--leaf); border-radius: 10px; background: transparent; color: var(--leaf-dark); font: 700 14px "Trebuchet MS", sans-serif; }
+    .choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { display: inline-flex; align-items: center; min-height: 41px; padding: 7px 10px; border: 1px solid #b8c5bc; border-radius: 99px; background: #fff; font: 700 14px "Trebuchet MS", sans-serif; }
+    .chip input { width: 18px; height: 18px; min-height: 0; margin: 0 7px 0 0; accent-color: var(--leaf); }
+    .actions { display: grid; gap: 10px; margin: 22px -20px -20px; padding: 15px 20px 20px; border-top: 1px solid var(--line); background: rgba(255, 253, 248, .96); }
+    .primary { min-height: 52px; border: 0; border-radius: 13px; background: var(--leaf); color: #fff; font: 700 16px "Trebuchet MS", sans-serif; }
+    .primary:hover { background: var(--leaf-dark); }
+    .secondary { min-height: 42px; border: 0; background: transparent; color: var(--leaf-dark); text-decoration: underline; font: 700 14px "Trebuchet MS", sans-serif; }
+    #summary { display: none; margin: 18px 0 0; padding: 16px; border-radius: 14px; background: var(--sand); }
+    #summary h2 { margin-bottom: 8px; }
+    #summary p { margin: 0; }
+    @media (min-width: 640px) {
+      .shell { padding-top: 46px; }
+      form { padding: 30px; }
+      .fields.two { grid-template-columns: 1fr 1fr; }
+      .actions { margin: 26px -30px -30px; padding: 16px 30px 25px; grid-template-columns: 1fr auto; align-items: center; }
+      .secondary { order: -1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <p class="eyebrow">Вакансии / исследование рынка</p>
+      <h1>Соберите точную выборку</h1>
+      <p class="intro">Подключайте только нужные условия. Все включённые фильтры действуют одновременно.</p>
+    </header>
+
+    <p class="notice"><span aria-hidden="true">i</span><span><strong>Прототип.</strong> Он проверяет удобство фильтров; поиск и отправка письма ещё не подключены.</span></p>
+
+    <form id="filters">
+      <section class="section" aria-labelledby="source-heading">
+        <h2 id="source-heading">Источник</h2>
+        <p class="hint">В одном отчёте используется только один источник — так данные не смешиваются.</p>
+        <div class="source-grid" role="radiogroup" aria-label="Источник вакансий">
+          <label class="source-option"><input type="radio" name="source" value="HH.ru" checked><span class="radio-mark" aria-hidden="true"></span><span><span class="source-name">HH.ru</span><span class="source-note">Российские вакансии</span></span></label>
+          <label class="source-option"><input type="radio" name="source" value="Monster.com"><span class="radio-mark" aria-hidden="true"></span><span><span class="source-name">Monster.com</span><span class="source-note">Международные вакансии</span></span></label>
+          <label class="source-option"><input type="radio" name="source" value="LinkedIn"><span class="radio-mark" aria-hidden="true"></span><span><span class="source-name">LinkedIn — тест</span><span class="source-note">Только разрешённые публичные данные</span></span></label>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="period-heading">
+        <h2 id="period-heading">Период</h2>
+        <p class="hint">Ищем вакансии по дате публикации.</p>
+        <label>Опубликованы за
+          <select name="period"><option value="7">последние 7 дней</option><option value="30" selected>последние 30 дней</option><option value="90">последние 90 дней</option></select>
+        </label>
+      </section>
+
+      <section class="section" aria-labelledby="filters-heading">
+        <h2 id="filters-heading">Условия поиска</h2>
+        <p class="hint">Включите условие, если оно необходимо. Пустые поля не ограничивают результат.</p>
+        <div class="toggle-list">
+          <label class="toggle"><input type="checkbox" name="use-title"><span>Название должности</span><span class="filter-body"><input name="title" type="text" placeholder="Например, директор по маркетингу"></span></label>
+          <label class="toggle"><input type="checkbox" name="use-skills"><span>Навыки</span><span class="filter-body"><span class="hint">Все добавленные навыки обязательны.</span><span id="skill-list"><span class="skill-row"><input name="skill" type="text" placeholder="Например, growth analytics" aria-label="Навык"><button class="remove" type="button" aria-label="Удалить навык">×</button></span></span><button id="add-skill" class="add-skill" type="button">+ Добавить навык</button></span></label>
+          <label class="toggle"><input type="checkbox" name="use-location"><span>Локация</span><span class="filter-body"><input name="location" type="text" placeholder="Страна, город или регион"></span></label>
+          <label class="toggle"><input type="checkbox" name="use-format"><span>Формат работы</span><span class="filter-body choice-row"><span class="chip"><input type="checkbox" name="format" value="Офис">Офис</span><span class="chip"><input type="checkbox" name="format" value="Гибрид">Гибрид</span><span class="chip"><input type="checkbox" name="format" value="Удалённо">Удалённо</span></span></label>
+          <label class="toggle"><input type="checkbox" name="use-visa"><span>Визовая поддержка</span><span class="filter-body"><select name="visa"><option value="Обязательна">Поддержка обязательна</option><option value="Не важна">Не важна</option><option value="Не требуется">Не требуется</option></select></span></label>
+          <label class="toggle"><input type="checkbox" name="use-salary"><span>Зарплата</span><span class="filter-body fields two"><input name="salary" type="number" min="0" inputmode="decimal" placeholder="Минимальная сумма" aria-label="Минимальная сумма"><select name="currency" aria-label="Валюта"><option>RUB</option><option>USD</option><option>EUR</option></select></span></label>
+          <label class="toggle"><input type="checkbox" name="use-employer"><span>Работодатель</span><span class="filter-body"><input name="employer" type="text" placeholder="Название компании"></span></label>
+        </div>
+      </section>
+
+      <div class="actions"><button class="primary" type="submit">Сформировать выборку</button><button class="secondary" type="reset">Очистить условия</button></div>
+    </form>
+
+    <section id="summary" aria-live="polite"></section>
+  </main>
+  <script>
+    const form = document.querySelector('#filters');
+    const skillList = document.querySelector('#skill-list');
+    const summary = document.querySelector('#summary');
+
+    document.querySelector('#add-skill').addEventListener('click', () => {
+      const row = document.createElement('span');
+      row.className = 'skill-row';
+      row.innerHTML = '<input name="skill" type="text" placeholder="Ещё один навык" aria-label="Навык"><button class="remove" type="button" aria-label="Удалить навык">×</button>';
+      skillList.append(row);
+      row.querySelector('input').focus();
+    });
+
+    skillList.addEventListener('click', (event) => {
+      if (!event.target.matches('.remove')) return;
+      const rows = skillList.querySelectorAll('.skill-row');
+      if (rows.length === 1) {
+        rows[0].querySelector('input').value = '';
+      } else {
+        event.target.closest('.skill-row').remove();
+      }
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const active = [];
+      if (data.get('use-title') && data.get('title').trim()) active.push('должность: ' + data.get('title').trim());
+      const skills = data.getAll('skill').map(value => value.trim()).filter(Boolean);
+      if (data.get('use-skills') && skills.length) active.push('все навыки: ' + skills.join(', '));
+      if (data.get('use-location') && data.get('location').trim()) active.push('локация: ' + data.get('location').trim());
+      const formats = data.getAll('format');
+      if (data.get('use-format') && formats.length) active.push('формат: ' + formats.join(', '));
+      if (data.get('use-visa')) active.push('виза: ' + data.get('visa'));
+      if (data.get('use-salary') && data.get('salary')) active.push('зарплата от ' + data.get('salary') + ' ' + data.get('currency'));
+      if (data.get('use-employer') && data.get('employer').trim()) active.push('работодатель: ' + data.get('employer').trim());
+      summary.style.display = 'block';
+      summary.innerHTML = '<h2>Запрос собран</h2><p><strong>Источник:</strong> ' + data.get('source') + '. <strong>Период:</strong> ' + data.get('period') + ' дней. ' + (active.length ? '<strong>Условия:</strong> ' + active.join('; ') + '.' : 'Дополнительные условия не выбраны.') + '</p>';
+      summary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  </script>
+</body>
+</html>
